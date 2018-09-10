@@ -79,7 +79,7 @@ function mfc_application_entry(target)
 end
 
 -- apply shared mfc settings
-function mfc_shared(target)
+function sharedmfc_apply(target)
 
     -- remove some exists flags
     _mfc_remove_flags(target)
@@ -93,7 +93,7 @@ function mfc_shared(target)
 end
 
 -- apply static mfc settings
-function mfc_static(target)
+function staticmfc_apply(target)
 
     -- remove some exists flags
     _mfc_remove_flags(target)

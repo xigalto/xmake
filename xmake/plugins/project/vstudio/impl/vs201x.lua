@@ -94,9 +94,9 @@ function _make_targetinfo(mode, arch, target)
     targetinfo.linkflags = linkflags
 
     -- save mfc
-    if target:rule("win.sdk.mfc.shared") then
+    if target:rule("win.sdk.sharedmfc") then
         targetinfo.mfc = "Dynamic"
-    elseif target:rule("win.sdk.mfc.static") then
+    elseif target:rule("win.sdk.staticmfc") then
         targetinfo.mfc = "Static"
     end
 
@@ -104,6 +104,7 @@ function _make_targetinfo(mode, arch, target)
     for _, flag in pairs(firstcompflags) do
         if flag:find("[%-|/]DUNICODE") then
             targetinfo.unicode = true
+            break
         end
     end
 

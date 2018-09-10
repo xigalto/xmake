@@ -23,7 +23,7 @@
 --
 
 -- define rule: shared
-rule("win.sdk.mfc.shared")
+rule("win.sdk.sharedmfc")
 
     -- add mfc base rule
     add_deps("win.sdk.mfc.env")
@@ -32,11 +32,11 @@ rule("win.sdk.mfc.shared")
     after_load(function (target)
 
         -- apply mfc settings
-        import("mfc").mfc_shared(target)
+        import("mfc").sharedmfc_apply(target)
     end)
 
 -- define rule: static
-rule("win.sdk.mfc.static")
+rule("win.sdk.staticmfc")
 
     -- add mfc base rule
     add_deps("win.sdk.mfc.env")
@@ -45,14 +45,14 @@ rule("win.sdk.mfc.static")
     after_load(function (target)
 
         -- apply mfc settings
-        import("mfc").mfc_static(target)
+        import("mfc").staticmfc_apply(target)
     end)
 
--- define rule: sharedcapp
-rule("win.sdk.mfc.shared_app")
+-- define rule: sharedmfc.app
+rule("win.sdk.sharedmfc.app")
 
     -- add mfc base rule
-    add_deps("win.sdk.mfc.shared")
+    add_deps("win.sdk.sharedmfc")
 
     -- after load
     after_load(function (target)
@@ -64,11 +64,11 @@ rule("win.sdk.mfc.shared_app")
         target:add("ldflags", import("mfc").mfc_application_entry(target), {force = true})       
     end)
 
--- define rule: staticapp
-rule("win.sdk.mfc.static_app")
+-- define rule: staticmfc.app
+rule("win.sdk.staticmfc.app")
 
     -- add mfc base rule
-    add_deps("win.sdk.mfc.static")
+    add_deps("win.sdk.staticmfc")
 
     -- after load
     after_load(function (target)

@@ -281,9 +281,9 @@ function _make_configurations(vcprojfile, vsinfo, target, vcprojdir)
 
     -- save mfc, not used: 0, static:1, dynamic:2
     local mfc = 0
-    if target:rule("win.sdk.mfc.shared") then
+    if target:rule("win.sdk.sharedmfc") then
         mfc = 2
-    elseif target:rule("win.sdk.mfc.static") then
+    elseif target:rule("win.sdk.staticmfc") then
         mfc = 1
     end
     
@@ -292,6 +292,7 @@ function _make_configurations(vcprojfile, vsinfo, target, vcprojdir)
     for _, flag in pairs(compflags) do
         if flag:find("[%-|/]DUNICODE") then
             unicode = true
+            break
         end
     end
 
