@@ -79,6 +79,25 @@ function _make_linkflags(targetinfo, vcxprojdir)
     return flags
 end
 
+-- filter additional flags
+function _filter_additional_flags(flags)    
+    local additional_flags = {}
+    local excludes = {"Os", "O0", "Od", "O1", "O2", "Ot", "Ox", "W0", "W1", "W2", "W3", "WX", "Wall", "Zi", "ZI", "Z7", "MT", "MTd", "MD", "MDd", "TP", "Fd", "fp", "I"}
+    for _, flag in ipairs(flags) do
+        local excluded = false
+        for _, exclude in ipairs(excludes) do
+            if flag:find("[%-|/]" .. exclude) then
+                excluded = true
+                break
+            end
+        end
+        if not excluded then
+            table.insert(additional_flags, flag)
+        end
+    end
+    return additional_flags
+end
+
 -- make header
 function _make_header(vcxprojfile, vsinfo)
 
@@ -212,12 +231,13 @@ function _make_configurations(vcxprojfile, vsinfo, target, vcxprojdir)
 end
 
 -- make source options
-function _make_source_options(vcxprojfile, flags, condition)
+function _make_source_options(vcxprojfile, targetinfo, condition)
 
     -- exists condition?
     condition = condition or ""
 
     -- get flags string
+    local flags = targetinfo.commonflags
     local flagstr = os.args(flags)
 
     -- make Optimization
@@ -278,6 +298,9 @@ function _make_source_options(vcxprojfile, flags, condition)
         vcxprojfile:print("<RuntimeLibrary%s>MultiThreaded</RuntimeLibrary>", condition)
     end
 
+    -- make pdb
+    vcxprojfile:print("<ProgramDataBaseFileName>%s</ProgramDataBaseFileName>", targetinfo.symbolfile)
+
     -- make AdditionalIncludeDirectories
     if flagstr:find("[%-|/]I") then
         local dirs = {}
@@ -295,20 +318,7 @@ function _make_source_options(vcxprojfile, flags, condition)
     end
 
     -- make AdditionalOptions
-    local additional_flags = {}
-    local excludes = {"Os", "O0", "O1", "O2", "Ot", "Ox", "W0", "W1", "W2", "W3", "WX", "Wall", "Zi", "ZI", "Z7", "MT", "MTd", "MD", "MDd", "TP", "Fd", "fp", "I"}
-    for _, flag in ipairs(flags) do
-        local excluded = false
-        for _, exclude in ipairs(excludes) do
-            if flag:find("[%-|/]" .. exclude) then
-                excluded = true
-                break
-            end
-        end
-        if not excluded then
-            table.insert(additional_flags, flag)
-        end
-    end
+    local additional_flags = _filter_additional_flags(flags)
     if #additional_flags > 0 then
         vcxprojfile:print("<AdditionalOptions%s>%s %%(AdditionalOptions)</AdditionalOptions>", condition, os.args(additional_flags))
     end
@@ -382,7 +392,7 @@ function _make_common_item(vcxprojfile, vsinfo, target, targetinfo, vcxprojdir)
     vcxprojfile:enter("<ClCompile>")
 
         -- make source options
-        _make_source_options(vcxprojfile, targetinfo.commonflags)
+        _make_source_options(vcxprojfile, targetinfo)
 
 
         -- use c or c++ precompiled header
@@ -423,7 +433,7 @@ function _make_common_items(vcxprojfile, vsinfo, target, vcxprojdir)
                     local flags = _make_compflags(sourcefile, targetinfo, vcxprojdir)
 
                     -- no common flags for asm
-                    if sourcekind ~= "as" then
+                    if sourcekind ~= "as" and sourcekind ~= "mrc" then
                         for _, flag in ipairs(flags) do
                             flags_stats[flag] = (flags_stats[flag] or 0) + 1
                         end
@@ -625,7 +635,7 @@ function _make_source_file_forspec(vcxprojfile, vsinfo, target, sourcefile, sour
                 vcxprojfile:print("<PrecompiledHeader>NotUsing</PrecompiledHeader>")
             end
             vcxprojfile:print("<ObjectFileName>%s</ObjectFileName>", objectfile)
-            vcxprojfile:print("<AdditionalOptions>%s %%(AdditionalOptions)</AdditionalOptions>", os.args(info.flags))
+            -- vcxprojfile:print("<AdditionalOptions>%s %%(AdditionalOptions)</AdditionalOptions>", os.args(_filter_additional_flags(info.flags)))
         end
 
         -- leave it
